@@ -13,35 +13,22 @@
         android:padding="5dp" >
 
         <Button
-            android:id="@+id/btnSelectPhoto"
-            android:background="@color/blue"
+            android:id="@+id/btnSelectUsername"
+            android:background="@color/green"
             android:layout_width="match_parent"
             android:layout_marginBottom="10dp"
             android:layout_height="wrap_content"
-            android:text="Select Photo" />
+            android:text="Select Username" />
 
         <Button
-            android:id="@+id/btnConfirm"
-            android:background="@color/blue"
+            android:id="@+id/btnExit"
+            android:background="@color/purple"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Confirm" />
+            android:text="Exit" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="10dp" >
-
-        <ImageView
-            android:id="@+id/ivImage"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_launcher" />
-    </LinearLayout>
 
 </LinearLayout>
 

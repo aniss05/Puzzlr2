@@ -1,26 +1,50 @@
 package com.example.aniss.inse6140;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.multidex.MultiDex;
+import android.os.Environment;
+import android.os.StrictMode;
+import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import userblockchain.UserBlockchain;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.math.BigInteger;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
+
+import BlockChain.DataBlockchain;
+import BlockChain.PublicKeyBlockchain;
+import BlockChain.UserBlockchain;
+import security.Asymmetric;
+import tools.Encoding;
+
+//import userblockchain.UserBlockchain;
 
 
 public class Register extends Activity implements View.OnClickListener{
 
 
-    private static Button etRegister;
-    private static EditText  etUsername, etPassword, etConfirmPassword;
+    Button etRegister;
+    EditText  etUsername, etPassword, etConfirmPassword;
 
-    private static TextView mErrorField;
+    TextView mErrorField;
+    TextView tv;
 
 
     @Override
@@ -28,6 +52,11 @@ public class Register extends Activity implements View.OnClickListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        if(Build.VERSION.SDK_INT > 9){
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+
+        }
 
 
 
@@ -38,23 +67,17 @@ public class Register extends Activity implements View.OnClickListener{
         mErrorField =(TextView) findViewById(R.id.error_messages);
         etRegister = (Button) findViewById(R.id.etRegister);
 
+        tv = (TextView) findViewById(R.id.externalState);
+
 
 
         etRegister.setOnClickListener(this);
     }
 
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        MultiDex.install(this);
-    }
 
 
-    /*@Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        MultiDex.install(this);
-    }*/
+
+
 
 
     @Override
@@ -64,7 +87,7 @@ public class Register extends Activity implements View.OnClickListener{
 
 
             case R.id.etRegister:
-                v.setEnabled(false);
+
 
 
                 if(
@@ -74,19 +97,47 @@ public class Register extends Activity implements View.OnClickListener{
                     if(etPassword.getText().toString().equals(etConfirmPassword.getText().toString())){
 
 
-                        UserBlockchain userBlockchain = new UserBlockchain("132.205.23.211", 3000);
-                        Boolean registered = userBlockchain.registerUser(etUsername.getText().toString(), etPassword.getText().toString());
+                        try{
 
-                        if(registered){
-                            Toast.makeText(getApplicationContext(), "You have registered successfully", Toast.LENGTH_LONG).show();
+                            UserBlockchain userBlockchain = new UserBlockchain("132.205.23.211", 3000);
+
+                            Asymmetric asymmetric = new Asymmetric();
+
+                            KeyPair keyPair = asymmetric.generateKeyPair();
+
+                            PublicKey publicKey = keyPair.getPublic();
+
+                            byte[] publicKeyByteArray = publicKey.getEncoded();
+
+
+
+
+                            String publicKeyString = new Encoding().encodeImage(publicKeyByteArray);
+
+
+                            Boolean registered = userBlockchain.registerUser(etUsername.getText().toString(), etPassword.getText().toString());
+
+                            if(registered){
+                                Toast.makeText(getApplicationContext(),"You have registered successfully", Toast.LENGTH_LONG).show();
+
+                                PublicKeyBlockchain publicKeyBlockchain = new PublicKeyBlockchain("132.205.23.211", 3000);
+                                if(publicKeyBlockchain.registerPublicKey(etUsername.getText().toString(), publicKeyString)){
+                                    Toast.makeText(getApplicationContext(), "Public key registred successfully on server.", Toast.LENGTH_LONG).show();
+                                    Intent intent = new Intent(Register.this, Login.class);
+                                    startActivity(intent);
+                                }else{
+                                    Toast.makeText(getApplicationContext(), "Failed to register public key on server.", Toast.LENGTH_LONG).show();
+                                }
+
+                            }
+
+                        }catch(Exception ex){
+                            Toast.makeText(getApplicationContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
                         }
 
 
-
-
-
-
-
+                    }else{
+                        Toast.makeText(getApplicationContext(), "The password fields do not match", Toast.LENGTH_LONG).show();
                     }
 
                 }
@@ -97,5 +148,84 @@ public class Register extends Activity implements View.OnClickListener{
 
                 break;
         }
+    }
+
+
+
+
+
+
+
+    private void checkExternalMedia(){
+        boolean bExternalStorageAvailable = false;
+        boolean bExternalStorageWritable = false;
+        String state = Environment.getExternalStorageState();
+
+
+        if(Environment.MEDIA_MOUNTED.equals(state)){
+            bExternalStorageAvailable = bExternalStorageWritable = true;
+        }else if(Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)){
+            bExternalStorageAvailable = true;
+            bExternalStorageWritable = false;
+        }else{
+            bExternalStorageAvailable = bExternalStorageWritable = false;
+        }
+
+        tv.append("\n\nExternal Media : readable = " + bExternalStorageAvailable + " writable = " + bExternalStorageWritable);
+
+    }
+
+
+
+    public void storeKeyPairToFiles(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeySpecException,
+            IOException {
+
+        Key publicKey = keyPair.getPublic();
+        Key privateKey = keyPair.getPrivate();
+
+        KeyFactory factory = KeyFactory.getInstance("RSA");
+
+        RSAPublicKeySpec rsaPublicKeySpec = factory.getKeySpec(publicKey, RSAPublicKeySpec.class);
+        RSAPrivateKeySpec rsaPrivateKeySpec = factory.getKeySpec(privateKey, RSAPrivateKeySpec.class);
+
+
+
+        File publicKeyFile = new File("public.key");
+        File privateKeyFile = new File("private.key");
+
+        saveToFile(publicKeyFile.getName(), rsaPublicKeySpec.getModulus(), rsaPublicKeySpec.getPublicExponent());
+        saveToFile(privateKeyFile.getName(), rsaPrivateKeySpec.getModulus(), rsaPrivateKeySpec.getPrivateExponent());
+
+
+
+    }
+
+    /**
+     * Save to file.
+     *
+     * @param filename the filename
+     * @param modulus the modulus
+     * @param publicExponent the public exponent
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    private void saveToFile(String filename, BigInteger modulus, BigInteger publicExponent) throws IOException {
+
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(
+                filename)));
+
+
+
+        try{
+            objectOutputStream.writeObject(modulus);
+            objectOutputStream.writeObject(publicExponent);
+
+
+        }catch(Exception e){
+            throw new IOException("Unexpected error", e);
+
+        }finally{
+            objectOutputStream.close();
+        }
+
     }
 }

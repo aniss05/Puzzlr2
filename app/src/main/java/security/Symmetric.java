@@ -1,4 +1,4 @@
-package com.example.aniss.inse6140;
+package security;
 
 import android.util.Base64;
 
@@ -187,16 +187,7 @@ public class Symmetric {
 
 
 
-    public String encodeImage(byte[] imageByteArray){
-        return Base64.encodeToString(imageByteArray, Base64.URL_SAFE);
-    }
 
-
-    public byte[] decodeImage(String imageDataString){
-
-        return Base64.decode(imageDataString, Base64.URL_SAFE);
-
-    }
 
 
 

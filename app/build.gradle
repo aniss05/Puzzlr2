@@ -3,20 +3,17 @@ apply plugin: 'com.android.application'
 
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 22
     buildToolsVersion '23.0.2'
     defaultConfig {
         applicationId "com.example.aniss.inse6140"
-        minSdkVersion 21
-        targetSdkVersion 23
+        minSdkVersion 15
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
 
-        multiDexEnabled true
-
 
     }
-
     buildTypes {
         release {
 
@@ -29,16 +26,12 @@ android {
 
 
 
-    dexOptions{
-        incremental true
-        javaMaxHeapSize "4g"
+
+    productFlavors {
     }
-
-
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:+'
-    compile 'com.android.support:multidex:1.0.0'
-    compile project(':mylibrary')
+    compile 'com.android.support:appcompat-v7:22.2.1'
+    compile 'com.android.support:design:22.2.1'
 }

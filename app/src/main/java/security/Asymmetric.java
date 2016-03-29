@@ -1,9 +1,11 @@
-package com.example.aniss.inse6140;
+package security;
 
 /**
  * Created by aniss on 04/03/16.
  */
 
+
+import android.os.Environment;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -25,6 +27,8 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
@@ -33,6 +37,9 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+
+import tools.Encoding;
+
 public class Asymmetric {
 
 
@@ -46,9 +53,10 @@ public class Asymmetric {
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
 
-        keyPairGenerator.initialize(4096);
+        keyPairGenerator.initialize(2048);
 
         KeyPair keyPair = keyPairGenerator.genKeyPair();
+
 
 
         return keyPair;
@@ -66,51 +74,7 @@ public class Asymmetric {
      * @throws InvalidKeySpecException the invalid key spec exception
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    public void storeKeyPairToFiles(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeySpecException,
-            IOException {
 
-        Key publicKey = keyPair.getPublic();
-        Key privateKey = keyPair.getPrivate();
-
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-
-        RSAPublicKeySpec rsaPublicKeySpec = factory.getKeySpec(publicKey, RSAPublicKeySpec.class);
-        RSAPrivateKeySpec rsaPrivateKeySpec = factory.getKeySpec(privateKey, RSAPrivateKeySpec.class);
-
-        saveToFile("public.key", rsaPublicKeySpec.getModulus(), rsaPublicKeySpec.getPublicExponent());
-        saveToFile("private.key", rsaPrivateKeySpec.getModulus(), rsaPrivateKeySpec.getPrivateExponent());
-
-
-    }
-
-    /**
-     * Save to file.
-     *
-     * @param filename the filename
-     * @param modulus the modulus
-     * @param publicExponent the public exponent
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    private void saveToFile(String filename, BigInteger modulus, BigInteger publicExponent) throws IOException {
-
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(
-                filename)));
-
-
-
-        try{
-            objectOutputStream.writeObject(modulus);
-            objectOutputStream.writeObject(publicExponent);
-
-
-        }catch(Exception e){
-            throw new IOException("Unexpected error", e);
-
-        }finally{
-            objectOutputStream.close();
-        }
-
-    }
 
 
     /**
@@ -131,6 +95,7 @@ public class Asymmetric {
         RSAPublicKeySpec keySpec = new RSAPublicKeySpec(m, e);
         KeyFactory factory = KeyFactory.getInstance("RSA");
         PublicKey publicKey = factory.generatePublic(keySpec);
+
 
         return publicKey;
 
@@ -179,6 +144,17 @@ public class Asymmetric {
      */
     public byte[] rsaEncryptKey(byte[] data) throws ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
         PublicKey publicKey = readPublicKeyFromFile("public.key");
+        Cipher cipher = Cipher.getInstance("RSA");
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] cipherData = cipher.doFinal(data);
+        return cipherData;
+
+
+    }
+
+
+
+    public byte[] rsaEncryptKey(byte[] data, PublicKey publicKey) throws ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] cipherData = cipher.doFinal(data);

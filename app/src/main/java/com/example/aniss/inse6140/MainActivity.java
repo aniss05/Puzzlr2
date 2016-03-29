@@ -3,8 +3,9 @@ package com.example.aniss.inse6140;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.multidex.MultiDex;
+import android.os.StrictMode;
 import android.view.View;
 import android.widget.Button;
 
@@ -21,6 +22,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if(Build.VERSION.SDK_INT > 9){
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+
+        }
+
         login = (Button) findViewById(R.id.etLogin);
         register = (Button) findViewById(R.id.etRegister);
 
@@ -35,11 +42,6 @@ public class MainActivity extends Activity implements View.OnClickListener{
     }
 
 
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        MultiDex.install(this);
-    }
 
 
 
@@ -49,7 +51,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         switch (v.getId()){
             case R.id.etLogin:
 
-                v.setEnabled(false);
+
 
                 startActivity(new Intent(this, Login.class));
 
@@ -58,7 +60,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
             case R.id.etRegister:
 
-                v.setEnabled(false);
+
 
                 startActivity(new Intent(this, Register.class));
 
