@@ -12,6 +12,19 @@
         android:orientation="vertical"
         android:padding="5dp" >
 
+        <Spinner
+            android:id="@+id/spinnerTech"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            >
+
+        </Spinner>
+
+
+
         <Button
             android:id="@+id/btnSelectPhoto"
             android:background="@color/blue"
@@ -41,9 +54,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_launcher" />
-    </LinearLayout>
 
+
+    </LinearLayout>
 </LinearLayout>
+
+
 
 
 

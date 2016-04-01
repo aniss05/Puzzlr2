@@ -112,19 +112,7 @@ public class Asymmetric {
      * @throws NoSuchAlgorithmException the no such algorithm exception
      * @throws InvalidKeySpecException the invalid key spec exception
      */
-    public PrivateKey readPrivateKeyFromFile(String filename) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException{
-        FileInputStream fileInputStream = new FileInputStream(filename);
-        ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(fileInputStream));
-        BigInteger m = (BigInteger) objectInputStream.readObject();
-        BigInteger e = (BigInteger) objectInputStream.readObject();
-        RSAPrivateKeySpec keySpec = new RSAPrivateKeySpec(m, e);
-        KeyFactory factory = KeyFactory.getInstance("RSA");
-        PrivateKey privateKey = factory.generatePrivate(keySpec);
 
-        return privateKey;
-
-
-    }
 
 
 
@@ -179,8 +167,8 @@ public class Asymmetric {
      * @throws IllegalBlockSizeException the illegal block size exception
      * @throws BadPaddingException the bad padding exception
      */
-    public byte[] rsaDecryptKey(byte[] cipherData) throws ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
-        PrivateKey privateKey = readPrivateKeyFromFile("private.key");
+    public byte[] rsaDecryptKey(byte[] cipherData, PrivateKey privateKey) throws ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException{
+
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         byte[] plaintext = cipher.doFinal(cipherData);

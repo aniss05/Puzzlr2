@@ -19,22 +19,37 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONObject;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -44,7 +59,7 @@ import security.Symmetric;
 import tools.Encoding;
 
 
-public class Home extends Activity {
+public class Home extends Activity implements AdapterView.OnItemSelectedListener {
 
     int REQUEST_CAMERA = 0, SELECT_FILE = 1;
     Button btnSelect;
@@ -56,6 +71,8 @@ public class Home extends Activity {
     String publicKeyofUser;
     String username;
     String myusername;
+    Spinner spinnerTech;
+    final String[] options = {"Menu","Messages","Logout"};
 
 
 
@@ -80,6 +97,10 @@ public class Home extends Activity {
             }
         });
         btnConfirm = (Button) findViewById(R.id.btnConfirm);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, options);
+        spinnerTech = (Spinner) findViewById(R.id.spinnerTech);
+        spinnerTech.setAdapter(adapter);
+        spinnerTech.setOnItemSelectedListener(this);
 
 
         final Encoding encoding = new Encoding();
@@ -120,18 +141,22 @@ public class Home extends Activity {
 
                             String ivHex = encoding.encodeImage(iv);
 
-                            int width = image.getWidth();
-
-                            int height = image.getHeight();
-
-                            Bitmap.Config configBmp = Bitmap.Config.valueOf(image.getConfig().name());
 
 
 
 
-                            byte[] imageByteArray = bitmapToByteArray(image, width, height);
+                            byte[] imageByteArray = encoding.bitmapToByteArray(image);
+
+
+
+
+
+
 
                             byte[] encryptedByteArrayImage = symmetric.encrypt(aesKey, iv, imageByteArray);
+
+
+
 
                             String encryptedImageHex = encoding.encodeImage(encryptedByteArrayImage);
 
@@ -161,41 +186,28 @@ public class Home extends Activity {
 
 
 
-                            byte[] usernameByteArray = username.getBytes();
+
+                            byte[] usernameByteArray = myusername.getBytes();
 
 
 
-                            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(aesKey.getEncoded().length + macKey.getEncoded().length + usernameByteArray.length);
+                            ByteArrayOutputStream byteArrayOutputStream2 = new ByteArrayOutputStream(aesKey.getEncoded().length + macKey.getEncoded().length + usernameByteArray.length);
 
-                            byteArrayOutputStream.write(aesKey.getEncoded());
-                            byteArrayOutputStream.write(macKey.getEncoded());
-                            byteArrayOutputStream.write(usernameByteArray);
+                            System.out.println("AES key to send is : " + aesKey.getEncoded().toString());
+                            byteArrayOutputStream2.write(aesKey.getEncoded());
+                            byteArrayOutputStream2.write(macKey.getEncoded());
+                            byteArrayOutputStream2.write(usernameByteArray);
 
-                            byte[] rsaPlaintext = byteArrayOutputStream.toByteArray();
+                            byte[] rsaPlaintext = byteArrayOutputStream2.toByteArray();
 
                             byte[] rsaCipherText = asymmetric.rsaEncryptKey(rsaPlaintext, publicKeyOfUser);
 
 
-                            String message = "RSA Ciphertext:" + encoding.encodeImage(rsaCipherText) +"RSA Ciphertext," + "IV:" + ivHex + "IV," + "AES Ciphertext:" + encryptedImageHex + "AES Ciphertext," + "Tag:" + tagHex +"Tag";
+                            String message = "RSA Ciphertext:" + encoding.encodeImage(rsaCipherText) +"RSA Ciphertext," + "IV:" + ivHex + "IV," + "AES Ciphertext:" + encryptedImageHex + "AES Ciphertext," + "Tag:" + tagHex +"Tag,";
 
                             DataBlockchain dataBlockchain = new DataBlockchain("132.205.23.211", 3000);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                            dataBlockchain.sendMessage(username, message);
 
 
 
@@ -370,11 +382,133 @@ public class Home extends Activity {
         ByteBuffer buffer = ByteBuffer.wrap(byteArrayImage);
         image.copyPixelsFromBuffer(buffer);
 
+
+
     }
 
 
 
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
+        if(position == 1){
+            Asymmetric asymmetric = new Asymmetric();
+            Symmetric symmetric = new Symmetric();
+            try {
+            DataBlockchain dataBlockchain = new DataBlockchain("132.205.23.211", 3000);
+            LinkedHashMap<String, String> receivedMessages = dataBlockchain.getAllMessages(myusername);
+            if(!receivedMessages.isEmpty()){
+
+                    PrivateKey myPrivateKey = this.readPrivateKeyFromFile(myusername);
+
+                    Collection<String> messages = receivedMessages.values();
+                    Object[] messagesArrayObject = messages.toArray();
+                    for(int i = 0; i < messagesArrayObject.length; i++){
+                        String message = messagesArrayObject[i].toString();
+
+
+
+
+                        String rsaCipherText = message.substring(message.lastIndexOf("RSA Ciphertext:") + 15, message.indexOf("RSA Ciphertext,"));
+                        String iv = message.substring(message.lastIndexOf("IV:") + 3, message.indexOf("IV,"));
+
+
+
+                        Encoding myEncoding = new Encoding();
+                        byte[] ivBytesArray = myEncoding.decodeImage(iv);
+                        byte[] rsaCipherTextByteArray = myEncoding.decodeImage(rsaCipherText);
+                        byte[] rsaPlainTextByteArray = asymmetric.rsaDecryptKey(rsaCipherTextByteArray, myPrivateKey);
+
+                        byte[] aesKeyByteArray = new byte[32];
+                        for(int j = 0; j < 32; j++){
+
+                            aesKeyByteArray[j] = rsaPlainTextByteArray[j];
+
+                        }
+
+                        byte[] macKeyByteArray = new byte[32];
+                        int k = 0;
+
+                        for(int j = 32; j < 64; j++){
+
+                            macKeyByteArray[k] = rsaPlainTextByteArray[j];
+                            k++;
+
+                        }
+
+                        byte[] usernameByteArray = new byte[rsaPlainTextByteArray.length - 64];
+                        int h = 0;
+
+                        for(int j = 64; j < rsaPlainTextByteArray.length; j++){
+
+                            usernameByteArray[h] = rsaPlainTextByteArray[j];
+                            h++;
+
+
+                        }
+
+
+                        SecretKeySpec macKey = new SecretKeySpec(macKeyByteArray, "HmacSHA512");
+                        SecretKeySpec aesKey = new SecretKeySpec(aesKeyByteArray, "AES");
+
+
+
+                        String username = new String(usernameByteArray);
+
+
+                        String aesCipherText = message.substring(message.lastIndexOf("AES Ciphertext:") + 15, message.indexOf("AES Ciphertext,"));
+                        byte[] aesCipherTextByteArray = myEncoding.decodeImage(aesCipherText);
+
+                        byte[] aesPlainTextByteArray = symmetric.decrypt(aesCipherTextByteArray, aesKey, ivBytesArray);
+
+
+                        System.out.println("AES key received is : " + aesKey.getEncoded().toString());
+
+
+
+                        Bitmap bmpImage = BitmapFactory.decodeByteArray(aesPlainTextByteArray, 0, aesPlainTextByteArray.length);
+
+
+                        ivImage.setImageBitmap(bmpImage);
+
+                    }
+
+
+            }else{
+                Toast.makeText(getApplicationContext(), "None", Toast.LENGTH_LONG).show();
+            }
+
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }else if(position == 2){
+            System.exit(0);
+        }
+
+
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
+
+
+    public PrivateKey readPrivateKeyFromFile(String username) throws IOException, ClassNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException{
+
+        FileInputStream fileInputStream = openFileInput(username + "PrivateKey.key");
+        ObjectInputStream objectInputStream = new ObjectInputStream(new BufferedInputStream(fileInputStream));
+        BigInteger m = (BigInteger) objectInputStream.readObject();
+        BigInteger e = (BigInteger) objectInputStream.readObject();
+        RSAPrivateKeySpec keySpec = new RSAPrivateKeySpec(m, e);
+        KeyFactory factory = KeyFactory.getInstance("RSA");
+        PrivateKey privateKey = factory.generatePrivate(keySpec);
+
+        return privateKey;
+
+
+    }
 
 
 

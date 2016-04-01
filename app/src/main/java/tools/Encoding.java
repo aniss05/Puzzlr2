@@ -1,6 +1,16 @@
 package tools;
 
+import android.graphics.Bitmap;
+import android.media.Image;
+import android.media.ImageReader;
 import android.util.Base64;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * Created by aniss on 09/03/16.
@@ -21,20 +31,14 @@ public class Encoding {
 
 
 
-    public String bytesToHex(byte[] data){
-        char hexDigits[] = {'0', '1', '2', '3', '4', '5', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
-        StringBuffer buffer = new StringBuffer();
-
-        for(int j = 0; j < data.length; j++){
-            buffer.append(hexDigits[(data[j] >> 4) & 0x0f]);
-            buffer.append(hexDigits[(data[j] & 0x0f)]);
-
-
-        }
-
-        return buffer.toString();
+    public byte[] bitmapToByteArray(Bitmap bitmap){
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        return byteArrayOutputStream.toByteArray();
     }
+
+
 
     /*public byte[] hexStringToByteArray(String hex){
         byte[] b = new byte[hex.length() / 2];

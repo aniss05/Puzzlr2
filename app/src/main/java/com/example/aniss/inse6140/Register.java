@@ -112,8 +112,15 @@ public class Register extends Activity implements View.OnClickListener{
 
 
 
+                            System.out.println("Generated private key is : " + keyPair.getPrivate().toString());
+
                             String publicKeyString = new Encoding().encodeImage(publicKeyByteArray);
 
+
+                            String publicKeyFileName = etUsername.getText().toString() + "PublicKey.key";
+                            String privateKeyFileName = etUsername.getText().toString() + "PrivateKey.key";
+
+                            this.storeKeyPairToFiles(keyPair, publicKeyFileName, privateKeyFileName);
 
                             Boolean registered = userBlockchain.registerUser(etUsername.getText().toString(), etPassword.getText().toString());
 
@@ -156,28 +163,10 @@ public class Register extends Activity implements View.OnClickListener{
 
 
 
-    private void checkExternalMedia(){
-        boolean bExternalStorageAvailable = false;
-        boolean bExternalStorageWritable = false;
-        String state = Environment.getExternalStorageState();
-
-
-        if(Environment.MEDIA_MOUNTED.equals(state)){
-            bExternalStorageAvailable = bExternalStorageWritable = true;
-        }else if(Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)){
-            bExternalStorageAvailable = true;
-            bExternalStorageWritable = false;
-        }else{
-            bExternalStorageAvailable = bExternalStorageWritable = false;
-        }
-
-        tv.append("\n\nExternal Media : readable = " + bExternalStorageAvailable + " writable = " + bExternalStorageWritable);
-
-    }
 
 
 
-    public void storeKeyPairToFiles(KeyPair keyPair) throws NoSuchAlgorithmException, InvalidKeySpecException,
+    public void storeKeyPairToFiles(KeyPair keyPair, String publicKeyFileName, String privateKeyFileName) throws NoSuchAlgorithmException, InvalidKeySpecException,
             IOException {
 
         Key publicKey = keyPair.getPublic();
@@ -190,28 +179,25 @@ public class Register extends Activity implements View.OnClickListener{
 
 
 
-        File publicKeyFile = new File("public.key");
-        File privateKeyFile = new File("private.key");
+        FileOutputStream fileOutputStream = openFileOutput(publicKeyFileName, MODE_PRIVATE);
+        FileOutputStream fileOutputStream1 = openFileOutput(privateKeyFileName, MODE_PRIVATE);
 
-        saveToFile(publicKeyFile.getName(), rsaPublicKeySpec.getModulus(), rsaPublicKeySpec.getPublicExponent());
-        saveToFile(privateKeyFile.getName(), rsaPrivateKeySpec.getModulus(), rsaPrivateKeySpec.getPrivateExponent());
-
-
+        saveToFile(fileOutputStream, rsaPublicKeySpec.getModulus(), rsaPublicKeySpec.getPublicExponent());
+        saveToFile(fileOutputStream1, rsaPrivateKeySpec.getModulus(), rsaPrivateKeySpec.getPrivateExponent());
 
     }
 
     /**
      * Save to file.
      *
-     * @param filename the filename
+     * @param fos the filename
      * @param modulus the modulus
      * @param publicExponent the public exponent
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private void saveToFile(String filename, BigInteger modulus, BigInteger publicExponent) throws IOException {
+    private void saveToFile(FileOutputStream fos, BigInteger modulus, BigInteger publicExponent) throws IOException {
 
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(
-                filename)));
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(fos));
 
 
 

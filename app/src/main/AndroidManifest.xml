@@ -24,10 +24,12 @@
         </activity>
         <activity
             android:name=".Login"
-            android:label="@string/title_activity_login" />
+            android:label="@string/title_activity_login"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Register"
-            android:label="@string/title_activity_register" />
+            android:label="@string/title_activity_register"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Home"
             android:label="@string/title_activity_home"
@@ -39,6 +41,10 @@
         <activity
             android:name=".RetrieveFriend"
             android:label="@string/title_activity_retrieve_friend"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".Show_received_image"
+            android:label="@string/title_activity_show_received_image"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
