@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -80,6 +81,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(android.R.style.ThemeOverlay_Material_Dark);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
@@ -119,7 +121,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
                 try {
 
 
-                    if (drawable == null) {
+                    if (ivImage == null) {
 
 
                         Toast.makeText(getApplicationContext(), "No picture selected, please select one.", Toast.LENGTH_LONG).show();
@@ -130,7 +132,11 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
                         try{
 
 
-                            image = drawable.getBitmap();
+
+                            image = ((BitmapDrawable)ivImage.getDrawable()).getBitmap();
+                            if(image == null){
+                                Toast.makeText(getApplicationContext(), "Null", Toast.LENGTH_LONG).show();
+                            }
 
                             Symmetric symmetric = new Symmetric();
 
@@ -145,6 +151,13 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
 
+                            int width = image.getWidth();
+                            int height = image.getHeight();
+                            System.out.println("Image width to send is : " + width);
+                            System.out.println("Image height to send is : " + height);
+
+                            String configName = image.getConfig().name();
+                            System.out.println("Config name to send is : " + configName);
                             byte[] imageByteArray = encoding.bitmapToByteArray(image);
 
 
@@ -178,7 +191,6 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
 
-
                             byte[] tag = symmetric.computeMac(encryptedByteArrayImage, macKey, iv);
 
                             String tagHex = encoding.encodeImage(tag);
@@ -193,7 +205,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
                             ByteArrayOutputStream byteArrayOutputStream2 = new ByteArrayOutputStream(aesKey.getEncoded().length + macKey.getEncoded().length + usernameByteArray.length);
 
-                            System.out.println("AES key to send is : " + aesKey.getEncoded().toString());
+
                             byteArrayOutputStream2.write(aesKey.getEncoded());
                             byteArrayOutputStream2.write(macKey.getEncoded());
                             byteArrayOutputStream2.write(usernameByteArray);
@@ -203,7 +215,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
                             byte[] rsaCipherText = asymmetric.rsaEncryptKey(rsaPlaintext, publicKeyOfUser);
 
 
-                            String message = "RSA Ciphertext:" + encoding.encodeImage(rsaCipherText) +"RSA Ciphertext," + "IV:" + ivHex + "IV," + "AES Ciphertext:" + encryptedImageHex + "AES Ciphertext," + "Tag:" + tagHex +"Tag,";
+                            String message = "RSA Ciphertext:" + encoding.encodeImage(rsaCipherText) +"RSA Ciphertext," + "IV:" + ivHex + "IV," + "AES Ciphertext:" + encryptedImageHex + "AES Ciphertext," + "Tag:" + tagHex +"Tag," + "Image width:" + String.valueOf(width) + "Image width," + "Image height:" + String.valueOf(height) + "Image height," + "Config name:" + configName + "Config name,";
 
                             DataBlockchain dataBlockchain = new DataBlockchain("132.205.23.211", 3000);
 
@@ -240,7 +252,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
             }
         });
         ivImage = (ImageView) findViewById(R.id.ivImage);
-        drawable = (BitmapDrawable)ivImage.getDrawable();
+        //drawable = (BitmapDrawable)ivImage.getDrawable();
 
 
 
@@ -352,7 +364,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(selectedImagePath, options);
-        final int REQUIRED_SIZE = 200;
+        final int REQUIRED_SIZE = 600;
         int scale = 1;
         while (options.outWidth / scale / 2 >= REQUIRED_SIZE
                 && options.outHeight / scale / 2 >= REQUIRED_SIZE)
@@ -367,7 +379,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
 
-    private byte[] bitmapToByteArray(Bitmap image, int width, int height){
+    /*private byte[] bitmapToByteArray(Bitmap image, int width, int height){
 
 
         int size = image.getRowBytes() * image.getHeight();
@@ -384,7 +396,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
 
-    }
+    }*/
 
 
 
@@ -410,9 +422,20 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
 
+                        System.out.println("---------------------------------------------------------" );
                         String rsaCipherText = message.substring(message.lastIndexOf("RSA Ciphertext:") + 15, message.indexOf("RSA Ciphertext,"));
                         String iv = message.substring(message.lastIndexOf("IV:") + 3, message.indexOf("IV,"));
 
+
+                        String configName = message.substring(message.lastIndexOf("Config name:") + 12, message.indexOf("Config name,"));
+                        String widthString = message.substring(message.lastIndexOf("Image width:") + 12, message.indexOf("Image width,"));
+                        int imageWidth = Integer.valueOf(widthString);
+                        String heightString = message.substring(message.lastIndexOf("Image height:") + 13, message.indexOf("Image height,"));
+                        int imageHeight = Integer.valueOf(heightString);
+
+                        System.out.println("Received image width is : " + imageWidth );
+                        System.out.println("Received image height is : " + imageWidth );
+                        System.out.println("Received config name is : " + configName);
 
 
                         Encoding myEncoding = new Encoding();
@@ -463,14 +486,22 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
                         byte[] aesPlainTextByteArray = symmetric.decrypt(aesCipherTextByteArray, aesKey, ivBytesArray);
 
 
-                        System.out.println("AES key received is : " + aesKey.getEncoded().toString());
+
+
+                       /* Bitmap bitmap = BitmapFactory.decodeByteArray(aesPlainTextByteArray, 0, aesPlainTextByteArray.length);
+                        if(bitmap != null){
+                            Drawable image = new BitmapDrawable(Bitmap.createScaledBitmap(bitmap, 90, 100, true));
+                        }
+
+                        ivImage.setImageBitmap(image);*/
 
 
 
-                        Bitmap bmpImage = BitmapFactory.decodeByteArray(aesPlainTextByteArray, 0, aesPlainTextByteArray.length);
+                       System.out.println("---------------------------------------------------------" );
+                        Bitmap.Config configBmp = Bitmap.Config.valueOf(configName);
+                        Bitmap image = myEncoding.byteArrayToBitmap(aesPlainTextByteArray, imageWidth, imageHeight, configBmp);
 
-
-                        ivImage.setImageBitmap(bmpImage);
+                        ivImage.setImageBitmap(image);
 
                     }
 

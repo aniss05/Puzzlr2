@@ -19,6 +19,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(android.R.style.ThemeOverlay_Material_Dark);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
