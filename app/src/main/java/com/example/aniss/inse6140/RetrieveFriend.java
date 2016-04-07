@@ -47,10 +47,10 @@ public class RetrieveFriend extends AppCompatActivity implements View.OnClickLis
         switch (v.getId()){
             case R.id.etRetrieve:
                 if(!etUsername.getText().toString().equals("")){
-                    UserBlockchain userBlockchain = new UserBlockchain("132.205.23.211", 3000);
+                    UserBlockchain userBlockchain = new UserBlockchain("172.30.8.254", 3000);
 
                     if(userBlockchain.getRegistered(etUsername.getText().toString())){
-                        PublicKeyBlockchain publicKeyBlockchain = new PublicKeyBlockchain("132.205.23.211", 3000);
+                        PublicKeyBlockchain publicKeyBlockchain = new PublicKeyBlockchain("172.30.8.254", 3000);
                         String publicKeyofUser = publicKeyBlockchain.queryPublicKey(etUsername.getText().toString());
                         Intent intent = new Intent(RetrieveFriend.this, Home.class);
                         Bundle bundle = new Bundle();

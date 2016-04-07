@@ -28,7 +28,7 @@ public class DataBlockchain implements IDataBlockchain {
         blockchain = new OpenBlockchain(address, port);
 
         type = "GOLANG";
-        name = "954608c8572168c71470bc79eecb5496334e062b09bf43abd2a039d0365dc6dce542cc733075338a7cdef1d8a6abcc87bf158758535de6b752de103a7b3ed350";
+        name = "de43e35f88de8c990310e91aefe3b91c01afffc548bca072070f2650165aef805f3ef7674696c8d84e4d572d420d0eb418477414dd76bac7748ef95cb5dba0fe";
 
         hash = new Hash();
     }

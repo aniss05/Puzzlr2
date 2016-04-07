@@ -61,7 +61,7 @@ public class Login extends Activity implements View.OnClickListener{
 
 
                 if(!username.getText().toString().equals("") && !password.getText().toString().equals("")){
-                    UserBlockchain userBlockchain = new UserBlockchain("132.205.23.211", 3000);
+                    UserBlockchain userBlockchain = new UserBlockchain("172.30.8.254", 3000);
                     try {
 
                         if(userBlockchain.login(username.getText().toString(), password.getText().toString())){

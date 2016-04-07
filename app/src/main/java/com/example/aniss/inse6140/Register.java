@@ -100,7 +100,7 @@ public class Register extends Activity implements View.OnClickListener{
 
                         try{
 
-                            UserBlockchain userBlockchain = new UserBlockchain("132.205.23.211", 3000);
+                            UserBlockchain userBlockchain = new UserBlockchain("172.30.8.254", 3000);
 
                             Asymmetric asymmetric = new Asymmetric();
 
@@ -128,7 +128,7 @@ public class Register extends Activity implements View.OnClickListener{
                             if(registered){
                                 Toast.makeText(getApplicationContext(),"You have registered successfully", Toast.LENGTH_LONG).show();
 
-                                PublicKeyBlockchain publicKeyBlockchain = new PublicKeyBlockchain("132.205.23.211", 3000);
+                                PublicKeyBlockchain publicKeyBlockchain = new PublicKeyBlockchain("172.30.8.254", 3000);
                                 if(publicKeyBlockchain.registerPublicKey(etUsername.getText().toString(), publicKeyString)){
                                     Toast.makeText(getApplicationContext(), "Public key registred successfully on server.", Toast.LENGTH_LONG).show();
                                     Intent intent = new Intent(Register.this, Login.class);

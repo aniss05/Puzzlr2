@@ -31,6 +31,7 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,6 +39,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.KeyFactory;
@@ -217,7 +219,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
                             String message = "RSA Ciphertext:" + encoding.encodeImage(rsaCipherText) +"RSA Ciphertext," + "IV:" + ivHex + "IV," + "AES Ciphertext:" + encryptedImageHex + "AES Ciphertext," + "Tag:" + tagHex +"Tag," + "Image width:" + String.valueOf(width) + "Image width," + "Image height:" + String.valueOf(height) + "Image height," + "Config name:" + configName + "Config name,";
 
-                            DataBlockchain dataBlockchain = new DataBlockchain("132.205.23.211", 3000);
+                            DataBlockchain dataBlockchain = new DataBlockchain("172.30.8.254", 3000);
 
                             dataBlockchain.sendMessage(username, message);
 
@@ -252,6 +254,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
             }
         });
         ivImage = (ImageView) findViewById(R.id.ivImage);
+
         //drawable = (BitmapDrawable)ivImage.getDrawable();
 
 
@@ -262,25 +265,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu){
-        getMenuInflater().inflate(R.menu.contacts_menu, menu);
-        return true;
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item){
-
-
-        switch (item.getItemId()){
-            case R.id.contactsItem:
-                Intent intent1 = new Intent(Home.this, null);
-                startActivity(intent1);
-        }
-
-        return true;
-
-    }
 
 
     private void selectImage() {
@@ -408,7 +393,7 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
             Asymmetric asymmetric = new Asymmetric();
             Symmetric symmetric = new Symmetric();
             try {
-            DataBlockchain dataBlockchain = new DataBlockchain("132.205.23.211", 3000);
+            DataBlockchain dataBlockchain = new DataBlockchain("172.30.8.254", 3000);
             LinkedHashMap<String, String> receivedMessages = dataBlockchain.getAllMessages(myusername);
             if(!receivedMessages.isEmpty()){
 
@@ -488,20 +473,30 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
 
-                       /* Bitmap bitmap = BitmapFactory.decodeByteArray(aesPlainTextByteArray, 0, aesPlainTextByteArray.length);
-                        if(bitmap != null){
-                            Drawable image = new BitmapDrawable(Bitmap.createScaledBitmap(bitmap, 90, 100, true));
-                        }
-
-                        ivImage.setImageBitmap(image);*/
 
 
 
-                       System.out.println("---------------------------------------------------------" );
-                        Bitmap.Config configBmp = Bitmap.Config.valueOf(configName);
-                        Bitmap image = myEncoding.byteArrayToBitmap(aesPlainTextByteArray, imageWidth, imageHeight, configBmp);
+                       System.out.println("---------------------------------------------------------");
+                       /* Bitmap.Config configBmp = Bitmap.Config.valueOf(configName);
+                        Bitmap image1 = myEncoding.byteArrayToBitmap(aesCipherTextByteArray, imageWidth, imageHeight, configBmp);
+                        Bitmap image2 = myEncoding.byteArrayToBitmap(aesPlainTextByteArray, imageWidth, imageHeight, configBmp);*/
 
-                        ivImage.setImageBitmap(image);
+
+
+                        FileOutputStream fileOutputStream1 = openFileOutput("Encrypted.txt", MODE_PRIVATE);
+                        FileOutputStream fileOutputStream2 = openFileOutput("Decrypted.txt", MODE_PRIVATE);
+
+                        writeBimapToFile(fileOutputStream1, aesCipherTextByteArray, imageWidth, imageHeight, configName);
+                        writeBimapToFile(fileOutputStream2, aesPlainTextByteArray, imageWidth, imageHeight, configName);
+
+                        Bundle bundle = new Bundle();
+                        bundle.putString("Encrypted image file name", "Encrypted.txt");
+                        bundle.putString("Decrypted image file name", "Decrypted.txt");
+                        Intent intent = new Intent(Home.this, Show_received_image.class);
+                        intent.putExtras(bundle);
+                        startActivity(intent);
+
+
 
                     }
 
@@ -519,6 +514,25 @@ public class Home extends Activity implements AdapterView.OnItemSelectedListener
 
 
     }
+
+    private void writeBimapToFile(FileOutputStream fileOutputStream1, byte[] imageData, int imageWidth, int imageHeight, String configName) throws IOException {
+
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new BufferedOutputStream(fileOutputStream1));
+        try{
+            objectOutputStream.writeObject(imageData);
+            objectOutputStream.writeObject(imageWidth);
+            objectOutputStream.writeObject(imageHeight);
+            objectOutputStream.writeObject(configName);
+
+        }catch (Exception ex1){
+            Toast.makeText(getApplicationContext(), ex1.getMessage(), Toast.LENGTH_LONG).show();
+        }finally {
+            objectOutputStream.close();
+        }
+
+
+    }
+
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
