@@ -36,8 +36,6 @@ sudo apt-get install oracle-java8-installer
 
 To set the previously installed version of Java as default, do as follows:
 
-
-
 sudo update-alternatives --config java
 
 You will be prompted several choices, if you have several versions of Java installed. Just choose the number which describes the Oracle-Java8 version that you just installed.
@@ -46,17 +44,8 @@ You will be prompted several choices, if you have several versions of Java insta
 
 Note that for Android developpement, you can useseveral Integrated Developpement Environments,like Eclipse, or Android Studio, or IntelliJ. For this project, we used Android Studio which can be installed on Debian distributions as follows:
 
-
-
 sudo apt-add-repository ppa:paolorotolo/android-studio
-
-
-
 sudo apt-get update
-
-
-
-
 sudo apt-get install android-studio
 
 
@@ -72,32 +61,17 @@ For testing your project, you need to test it first on a virtual device before i
 
 Once all these tools are installed on your machine, just do the following command if you are on Linux:
 
-
-
-
 git clone https://github.com/aniss05/Puzzlr2.git
 
 ##Note
 
 You need to install Git on your computer first:
 
-
-
-
 sudo apt-get install git
-
-
-
 
 Also you need to install VirtualBox in order to use Genymotion:
 
-
-
-
 sudo apt-get install virtualbox
-
-
-
 
 Then open your Android Studio if you did not yet, and choose the option which says to import an existing Android Studio project. This will prompt to you a window in which you have to give the location of the cloned Puzzlr location.
 
